@@ -11,6 +11,7 @@ conventions a pull request is reviewed against. 中文版：[贡献指南.md](�
 - [Building the plugin and installing from source](#building-the-plugin-and-installing-from-source)
 - [Building the native worker](#building-the-native-worker)
 - [The verification gate](#the-verification-gate)
+- [One CI run per pull request](#one-ci-run-per-pull-request)
 - [Writing tests](#writing-tests)
 - [Code and documentation conventions](#code-and-documentation-conventions)
 - [Commits and pull requests](#commits-and-pull-requests)
@@ -121,6 +122,38 @@ What a skip means locally:
 
 How to read the gate and the expected numbers per host: [verify-locally.md](verify-locally.md).
 CI runs on every pull request and every push to `main`; a PR must be green on all three platforms.
+
+## One CI run per pull request
+
+Every pull request must show one run of the [Cross-platform validation](https://github.com/T-Auto/dsh-ops/blob/main/.github/workflows/ci.yml)
+workflow that its **own `pull_request` event** triggered. The aggregate job **`CI required`**
+summarises the Windows x64, Linux x64 and macOS arm64 legs; that job's run URL is what the pull
+request template asks for.
+
+- **What triggers it.** `ci.yml` runs on `pull_request` targeting `main`, `0.3.2` and
+  `release/0.4.0` (and on `push` to the same branches, plus `merge_group`). GitHub reads the
+  workflow file from the pull request's own head, so a PR against any of those branches starts a
+  run when it is opened or updated.
+- **How to confirm it.** List the runs for the branch, check the event, then read the run URL:
+
+  ```console
+  gh run list --branch <branch> --workflow ci.yml --event pull_request --limit 1
+  gh run view <run-id> --json url,event,conclusion --jq '"\(.url) \(.event) \(.conclusion)"'
+  ```
+
+  The pull request's **Checks** tab shows the same run; a green `CI required` there is the check
+  that has to pass.
+- **Fork contributors.** A fork PR cannot push the upstream branch, so run the same workflow in
+  your own fork (Actions enabled) and paste that run URL — this is the #150 path. Alternatively
+  open the pull request upstream first and let the repository trigger the `pull_request` run. A
+  first run from a first-time fork contributor can stop at `action_required`; a maintainer must
+  approve it before any job starts.
+- **A hand-dispatched run is not a substitute.** 26 of the 27 pull requests merged into
+  `release/0.4.0` had no `pull_request` run at all: the green check came from a manual
+  `workflow_dispatch`, which validates a branch but never the merge (#303).
+- **Required check.** Making `CI required` a *required* status check on `main` and
+  `release/0.4.0` is a repository-settings change that needs admin rights; it is tracked in #303
+  and cannot be done from a code PR. Until it lands, the rule is enforced in review.
 
 ## Writing tests
 

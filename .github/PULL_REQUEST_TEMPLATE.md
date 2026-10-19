@@ -1,6 +1,7 @@
 <!-- 标题：<type>(<scope>): <subject>（英文，conventional 形式）。
      正文：删掉不适用的段落，但 Validation 段请保留并给出实际读数。
-     English: keep the four sections; Validation carries real command output, not ticks. -->
+     English: keep the four sections; Validation carries real command output and the URL of the
+     `CI required` run, not ticks. -->
 
 Closes #
 
@@ -14,8 +15,23 @@ Closes #
 
 ## Validation
 
-<!-- 下面的清单是提醒，不是「勾完就算」：Validation 段必须给出实际命令与输出（含 passed/skipped/failed 计数）。 -->
+<!-- 下面的清单是提醒，不是「勾完就算」：Validation 段必须给出实际命令与输出（含 passed/skipped/failed 计数）。
 
+     每个 PR 都必须有一次由 pull_request 事件触发的 CI run，并在这里贴出聚合检查 `CI required`
+     的 run URL。只跑 workflow_dispatch、或只在 release 分支 push 上变绿，都不算（见 #303）。
+     English: every PR needs one run triggered by pull_request; paste the `CI required` run URL.
+     A hand-dispatched run or a green push run on a release branch does not count.
+
+     gh run list --branch <branch> --workflow ci.yml --event pull_request --limit 1
+     gh run view <run-id> --json url,event,conclusion --jq '"\(.url) \(.event) \(.conclusion)"'
+
+     Fork 贡献者：按 #150 在自己 fork 里跑同一 workflow，贴那次 run 的 URL；或先对上游仓库开
+     PR，由上游触发 pull_request run（首次运行可能停在 action_required，需维护者批准）。
+     English: fork contributors run the same workflow in their own fork (#150) and paste that URL,
+     or open the PR upstream so the repository triggers the pull_request run; a first-time fork
+     run may wait for a maintainer to approve `action_required`. -->
+
+- [ ] 本 PR 有一次 `pull_request` 事件触发的 `CI required` run，并在下面的代码块贴出 run URL
 - [ ] `npm run verify` 的实际输出（或 `DSH_OPS_REQUIRE_RUNTIME=1 npm run verify`）
 - [ ] 撤掉本次实现后，相关检查会变红（行为级红绿，而非只看代码结构）
 - [ ] `docs/CHANGELOG.md` 的 `## [Unreleased]` 已加条目（行为或发行物文档有变化时；若判定不需要，在 Validation 段写明理由）
@@ -26,6 +42,9 @@ Closes #
 ```
 $ <命令>
 <输出>
+
+$ gh run view <run-id> --json url,event,conclusion --jq '"\(.url) \(.event) \(.conclusion)"'
+<CI required 的 run URL，event 必须是 pull_request>
 ```
 
 ## Environment
